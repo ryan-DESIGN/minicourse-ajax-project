@@ -78,5 +78,6 @@ $(document).ready(function(){
 
 
 /*
+
 http://maps.googleapis.com/maps/api/streetview?size=500x500&location=1600 pennsylvania avenue, washington dc
 */
