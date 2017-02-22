@@ -2,12 +2,8 @@ $(document).ready(function(){
 
     function loadData() {
         var w = $(document).width();
-        console.log("yep it's loadData");
         var h = $(document).height();
-        var streetStr = $('#form-container :input#street').val();
-        console.log(streetStr);
-        var cityStr = $('#form-container :input#city').val();
-        console.log(cityStr);
+
         var $body = $('body');
         var $wikiElem = $('#wikipedia-links');
         var $nytHeaderElem = $('#nytimes-header');
@@ -18,23 +14,25 @@ $(document).ready(function(){
         $wikiElem.text("");
         $nytElem.text("");
 
-        // load streetview
-        var $streetview = $("");
+        var cityStr = $('#form-container :input#city').val();
+        var streetStr = $('#form-container :input#street').val();
+        var address = streetStr + ", " + cityStr;
 
-        // add the image to the body
-        $body.append('<img class="bgimg" src="maps.googleapis.com/maps/api/streetview?size=' +
+        $greeting.text("So, you want to live at " + address + "?");
+
+        // load streetview
+        var streetviewUrl = 'https://maps.googleapis.com/maps/api/streetview?size=' +
                                               w +
                                               'x' +
                                               h +
                                               '&location=' +
-                                              streetStr +
-                                              ', ' +
-                                              cityStr +
-                                              '">');
+                                              address;
+        // add the image to the body
+        $body.append('<img class="bgimg" src="' + streetviewUrl + '">');
         console.log('body appended with img');
 
         //define the NYT address for accessing articlesearch
-        var nytUrl = "https://api.dddnytimes.com/svc/search/v2/articlesearch.json?q=" + cityStr + "&sort=newest&api-key=2bf6dbf5656246c7a95c04d27a48933d";
+        var nytUrl = "https://api.dddnytimes.com/svc/search/v2/articlesearch.json?q=" + cityStr + "&sort=newest&api-key=XXXXXXXXXXXXXXXXXXXXXXXX";
 
         $.getJSON(nytUrl, function(data){
             console.log(data);
@@ -54,17 +52,22 @@ $(document).ready(function(){
 
         var wikiUrl = 'http://en.wikipedia.org/w/api.php?action=opensearch&search=' + cityStr + '&format=json&callback=wikiCallback';
 
+        var wikiRequestTimeout = setTimeout(function(){
+          $wikiElem.text("failed to get wikipedia resources");
+        }, 8000);
+
         $.ajax({
             url: wikiUrl,
             dataType: 'jsonp',
             jsonp: 'callback',
-            success: function(response){ //this means upon the success of the request from wikipedia you now can assemble your output
+            done: function(response){ //this means upon the success of the request from wikipedia you now can assemble your output
               var articles = response[1];
               for(var i = 0; i<articles.length; i++){
                 var articleStr = articles[i];
                 var url = "http://en.wikipedia.org/wiki/" + articleStr;
                 $wikiElem.append('<li><a href="' + url + '">' + articleStr + '</a></li>');
-              }
+              };
+              clearTimeout(wikiRequestTimeout);
             }
         });
 
